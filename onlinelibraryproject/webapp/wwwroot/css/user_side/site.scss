@@ -1,0 +1,102 @@
+$primary-bg-color: #FFFFFF; // main background color
+$secondary-bg-color: #F5F5F5; // secondary background color
+$text-color: #333333;
+$button-color: #007BFF;
+$succes-color: #28A745;
+$error-color: #DC3545;
+$brd-radius1: 20px;
+
+// IMPORTANT FILE THATS RESETS STYLES. MUST BE FIRST
+@import '../reset.scss';
+
+@import 'index.scss';
+@import 'registration.scss';
+@import 'login.scss';
+@import 'user_profile.scss';
+
+
+body {
+    font-family: Arial, sans-serif;
+    color: $text-color;
+    margin: 0;
+    padding: 0;
+    background-color: $primary-bg-color;
+}
+
+.container {
+    background-color: $secondary-bg-color;
+    border-radius: 25px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Accent colors */
+a {
+    color: $button-color;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+button {
+    background-color: $button-color;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.success {
+    color: $succes-color;
+}
+
+.error {
+    color: $error-color;
+}
+
+header {
+    background-color: $secondary-bg-color;
+    width: 75%;
+    margin: 40px auto;
+
+    .header-content {
+        width: 65%;
+        margin: 0 auto; /* center */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+    }
+}
+
+.sign-in-button {
+    margin:0 20px;
+}
+
+.search-bar input {
+    padding: 10px;
+    width: 300px;
+    border-radius: 5px;
+    border: none;
+}
+
+main {
+    width: 75%;
+    margin: 0 auto; /* center */
+}
+
+// Can be used with ViewData["HideHeader"] = true;
+// Then it will be show block in the center of the screen
+.center-block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+

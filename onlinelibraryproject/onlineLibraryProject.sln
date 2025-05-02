@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35527.113
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webapp", "webapp\webapp.csproj", "{C1C4D978-432E-446A-B423-A0D254104A81}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "webapi", "webapi\webapi.csproj", "{4A46E96D-C6EF-42EC-B627-24229035599D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestWebApp", "TestWebApp\TestWebApp.csproj", "{CC737CCE-1C98-4817-B030-678B0D7BE985}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C1C4D978-432E-446A-B423-A0D254104A81}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1C4D978-432E-446A-B423-A0D254104A81}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1C4D978-432E-446A-B423-A0D254104A81}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1C4D978-432E-446A-B423-A0D254104A81}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A46E96D-C6EF-42EC-B627-24229035599D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A46E96D-C6EF-42EC-B627-24229035599D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A46E96D-C6EF-42EC-B627-24229035599D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A46E96D-C6EF-42EC-B627-24229035599D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC737CCE-1C98-4817-B030-678B0D7BE985}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC737CCE-1C98-4817-B030-678B0D7BE985}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC737CCE-1C98-4817-B030-678B0D7BE985}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC737CCE-1C98-4817-B030-678B0D7BE985}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {59AE07B7-1944-4337-A4B0-514C0780B424}
+	EndGlobalSection
+EndGlobal

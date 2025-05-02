@@ -1,0 +1,29 @@
+# Папки
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+
+# Rider
+.rider/
+.idea/
+
+# NuGet пакеты
+packages/
+.nuget/
+
+# Конфигурационные файлы
+appsettings.json
+appsettings.Development.json
+connectionStrings.json
+
+# Скрытые файлы (для macOS/Linux)
+.DS_Store
+Thumbs.db
+
+# 
+tralalelo.md
+data/

@@ -1,0 +1,87 @@
+﻿@page
+@model webapp.Pages.Admin.PanelModel
+@{
+    ViewData["Title"] = "Admin Panel";
+
+}
+
+<div class="container">
+    <div class="sidebar">
+        <ul>
+            <li><a asp-route-table="books">Books</a></li>
+            <li><a asp-route-table="users">Users</a></li>
+        </ul>
+    </div>
+    <div class="main-content">
+        <div class="header">
+            <form method="get" asp-page="/Search">
+                <input type="text" name="query" placeholder="Поиск..." />
+                <button type="submit">Найти</button>
+            </form>
+            <a asp-page="/CreateBook" class="btn">Create Book</a>
+        </div>
+        <div class="table-container">
+            @if (Model.ShowBooksTable)
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>ISBN</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(Model.Books != null) 
+                        {
+                            @foreach (var book in Model.Books)
+                            {
+                                <tr>
+                                    <td>@book.Title</td>
+                                    <td>@book.Author</td>
+                                    <td>@book.Author</td>
+                                    <td>
+                                        <a asp-page="/EditBook" asp-route-id="@book.Id">Edit</a> |
+                                        <a asp-page="/DeleteBook" asp-route-id="@book.Id">Delete</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Users != null)
+                        {
+                            @foreach (var user in Model.Users)
+                            {
+                                <tr>
+                                    <td>@user.Name</td>
+                                    <td>@user.Email</td>
+                                    <td>@user.RoleId</td>
+                                    <td>
+                                        <a asp-page="/EditUser" asp-route-id="@user.Id">Edit</a> |
+                                        <a asp-page="/DeleteUser" asp-route-id="@user.Id">Delete</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

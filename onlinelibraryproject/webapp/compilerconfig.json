@@ -1,0 +1,11 @@
+﻿[
+    {
+        "outputFile": "wwwroot/css/user_side/site.css",
+        "inputFile": "wwwroot/css/user_side/site.scss"
+    },
+
+    {
+        "outputFile": "wwwroot/css/admin_side/site.css",
+        "inputFile": "wwwroot/css/admin_side/site.scss"
+    }
+]

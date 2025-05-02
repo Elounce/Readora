@@ -1,0 +1,33 @@
+﻿@page
+@model webapp.Pages.UserProfileModel
+@{
+    ViewData["Title"] = "Профиль пользователя";
+}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+</head>
+<body>
+    <main>
+        <div>
+            <h2>Сменить пароль</h2>
+
+            <form method="post" asp-antiforgery="true">
+                <label>@Model.User.Id</label><br />
+                <label asp-for="User.Login">Login</label><br />
+                <input asp-for="User.Login" value="@Model.User.Login" type="text" name="LoginInput" /><br />
+
+                <label asp-for="User.HashPassword">Password</label><br />
+                <input asp-for="User.HashPassword" value="@Model.User.HashPassword" type="password" name="PasswordInput" /><br />
+
+                <button type="submit">Войти</button>
+            </form>
+
+
+        </div>
+    </main>
+</body>
+</html>

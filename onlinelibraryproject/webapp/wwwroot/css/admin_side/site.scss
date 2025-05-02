@@ -1,0 +1,103 @@
+$primary-bg-color: #FFFFFF; // main background color
+$secondary-bg-color: #F5F5F5; // secondary background color
+$text-color: #333333;
+$button-color: #007BFF;
+$succes-color: #28A745;
+$error-color: #DC3545;
+$brd-radius1: 20px;
+
+// IMPORTANT FILE THATS RESETS STYLES. MUST BE FIRST
+@import '../reset.scss';
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: $primary-bg-color;
+    color: $text-color;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin: 20px;
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 200px;
+    background-color: #F5F5F5;
+    border-radius: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 100vh; /* Ensure the sidebar takes the full height of the viewport */
+
+    ul {
+        list-style-type: none;
+        padding: 0;
+
+        li {
+            margin: 15px 0;
+
+            a {
+                text-decoration: none;
+                color: $text-color;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    input[type="text"] {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        width: 300px;
+    }
+
+    button {
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        background-color: #007BFF;
+        color: #FFFFFF;
+        cursor: pointer;
+    }
+}
+
+.table-container {
+    background-color: #F5F5F5;
+    border-radius: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: #FFFFFF;
+        }
+    }
+}
