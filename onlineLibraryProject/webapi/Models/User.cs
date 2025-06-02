@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace webapi.Model;
+namespace webapi.Models;
 
 public partial class User
 {
@@ -32,6 +32,8 @@ public partial class User
     public int? RoleId { get; set; }
 
     public virtual ICollection<BooksUser> BooksUsers { get; set; } = new List<BooksUser>();
+
+    public virtual ICollection<Recommendation> Recommendations { get; set; } = new List<Recommendation>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 

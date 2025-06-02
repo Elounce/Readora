@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using webapi.Model;
+using Microsoft.Extensions.Caching.Memory;
+using webapi.Models;
 using webapi.ModelDto;
 
 namespace webapi.Endpoints
@@ -15,13 +16,14 @@ namespace webapi.Endpoints
                 .WithTags("Book");
 
             books.MapGet("", GetBooks);
-            books.MapGet("/{id}", GetBookById);
+            books.MapGet("/book/{id}", GetBookById);
             books.MapGet("/random", GetRandomBooks);
 
 
             // GET Books by page
-            static async Task<Results<Ok<List<BookDto>>, NotFound, BadRequest<string>>> GetBooks( 
-                MkarpovCourseworkLibraryContext db,
+            static async Task<Results<Ok<List<BookDto>>, NotFound, BadRequest<string>>> GetBooks(
+                IMemoryCache cache,
+                LibraryContext db,
                 [FromQuery] string? sortOrder = "title",
                 [FromQuery] string page = "1",
                 [FromQuery] string limit = "25")
@@ -34,37 +36,15 @@ namespace webapi.Endpoints
                 if (limitNumber >= 50)
                     return TypedResults.BadRequest("Exceeded the limit");
 
-                var query = db.Books;
-
-                // switch (sortOrder?.ToLower() ?? "title")
-                // {
-                //     case "title":
-                //         query = query.OrderBy(b => b.Title);
-                //         break;
-                //     case "author":
-                //         query = query.OrderBy(b => b.Author?.Name ?? string.Empty);
-                //         break;
-                //     default:
-                //         query = query.OrderBy(b => b.Id);
-                //         break;
-                // }
-
-                var books = await query
+                var books = await db.Books
                     .Skip((pageNumber - 1) * limitNumber)
                     .Take(limitNumber)
-                    .Select(b => new BookDto{
+                    .Select(b => new BookDto
+                    {
                         Id = b.Id,
-                        Title = b.Title,
-                        Author = b.AuthorId  
+                        Title = b.Title
                     })
                     .ToListAsync();
-
-                // List<BookDto> bookDtos = books.Select(b => new BookDto
-                // {
-                //     Id = b.Id,
-                //     Title = b.Title,
-                //     Author = b.AuthorId
-                // }).ToList();
 
                 return books.Any() ? TypedResults.Ok(books) : TypedResults.NotFound();
             }
@@ -73,17 +53,17 @@ namespace webapi.Endpoints
             // GET BookById
             static async Task<Results<Ok<Book>, NotFound>> GetBookById(
                 int id,
-                MkarpovCourseworkLibraryContext db)
+                LibraryContext db)
             {
                 return await db.Books.FindAsync(id)
                     is Book book ? TypedResults.Ok(book) : TypedResults.NotFound();
             }
 
-            
+
 
 
             static async Task<Results<Ok<List<BookDto>>, NotFound, BadRequest<string>>> GetRandomBooks(
-                MkarpovCourseworkLibraryContext db,
+                LibraryContext db,
                 [FromQuery] string limit = "5")
             {
                 if (!int.TryParse(limit, out int limitNumber) && limitNumber <= 0)
@@ -97,7 +77,7 @@ namespace webapi.Endpoints
                     skip = new Random().Next(0, maxRandomValue);
                 else
                     skip = 10;
-                
+
 
                 var books = await db.Books
                     .Skip(skip)
@@ -105,8 +85,7 @@ namespace webapi.Endpoints
                     .Select(book => new BookDto
                     {
                         Id = book.Id,
-                        Title = book.Title,
-                        Author = book.AuthorId
+                        Title = book.Title
                     })
                     .ToListAsync();
 

@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace webapi.Model;
+namespace webapi.Models;
 
 public partial class Book
 {
     public int Id { get; set; }
 
-    public int? Isbn { get; set; }
+    public string Isbn { get; set; } = null!;
 
     public string Title { get; set; } = null!;
-
-    public string? TitleLong { get; set; }
 
     public int? Pages { get; set; }
 
@@ -19,7 +17,7 @@ public partial class Book
 
     public int? YearPublished { get; set; }
 
-    public string? ImageUrl { get; set; }
+    public string? CoverImageUrl { get; set; }
 
     public int GenreId { get; set; }
 
@@ -27,9 +25,21 @@ public partial class Book
 
     public int PublisherId { get; set; }
 
-    public int AuthorId { get; set; }
+    public decimal? Price { get; set; }
 
-    public virtual Author Author { get; set; } = null!;
+    public DateTime? CreatedAt { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public decimal? RatingAverage { get; set; }
+
+    public short? TotalReviews { get; set; }
+
+    public bool? AdultOnly { get; set; }
+
+    public virtual ICollection<BookChangeHistory> BookChangeHistories { get; set; } = new List<BookChangeHistory>();
+
+    public virtual ICollection<BookFormat> BookFormats { get; set; } = new List<BookFormat>();
 
     public virtual ICollection<BooksUser> BooksUsers { get; set; } = new List<BooksUser>();
 
@@ -39,7 +49,11 @@ public partial class Book
 
     public virtual Publisher Publisher { get; set; } = null!;
 
+    public virtual ICollection<Recommendation> Recommendations { get; set; } = new List<Recommendation>();
+
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+
+    public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
 
     public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
 }

@@ -9,18 +9,21 @@ namespace webapi
     {
         private readonly string _key;
         private readonly string _issuer;
+        private readonly string _audience;
 
         public JwtService(IConfiguration config)
         {
             _key = config["Jwt:Key"];
             _issuer = config["Jwt:Issuer"];
+            _audience = config["Jwt:Audience"];
         }
 
-        public string GenerateToken(string username)
+        public string GenerateToken(string username, string userrole)
         {
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Role, userrole),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -29,9 +32,9 @@ namespace webapi
 
             var token = new JwtSecurityToken(
                 _issuer,
-                _issuer,
+                _audience,
                 claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: creds
             );
 

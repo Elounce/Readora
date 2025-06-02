@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace webapi.Model;
+namespace webapi.Models;
 
 public partial class BooksUser
 {
@@ -11,7 +11,11 @@ public partial class BooksUser
 
     public int StatusId { get; set; }
 
-    public int LastReadPage { get; set; }
+    public decimal? Progress { get; set; }
+
+    public DateTime? StartDate { get; set; }
+
+    public DateTime? FinishDate { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

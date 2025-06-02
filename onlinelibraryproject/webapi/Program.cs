@@ -1,21 +1,36 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
+using Serilog;
 using webapi;
 using webapi.Endpoints;
-using webapi.Model;
+using webapi.Models;
+
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
-// FIXME: Починить jwt
-var jwtKey = builder.Configuration["Jwt:Key"]; // TODO: Где хранить?
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 
+// Configurtations
 builder.Configuration.AddUserSecrets<Program>();
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+var connectionString = builder.Configuration["ConnectionStrings:kolei"];
+
+
+// Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -43,9 +58,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 builder.Services.AddMemoryCache();
-builder.Services.AddDbContext<MkarpovCourseworkLibraryContext>();
-builder.Services.AddAuthorization();
-builder.Services.AddSingleton<JwtService>();
+builder.Services.AddDbContext<LibraryContext>(options =>
+    options.UseMySQL(connectionString));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -56,31 +70,39 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
-            ValidAudience = jwtIssuer,
+            ValidAudience = jwtAudience,
+            ClockSkew = TimeSpan.Zero,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<JwtService>();
+builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.Configure<PasswordHasherOptions>(options =>
+{
+    options.IterationCount = 310_000;
+    options.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
+});
+
 
 var app = builder.Build();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseHttpsRedirection();
 app.RegisterBookEndpoints();
 app.RegisterUserEndPoints();
 app.RegisterAuthorEndPoints();
 app.RegisterBookCategoryEndPoints();
 app.RegisterBookGenreEndPoints();
 app.RegisterPublisherEndPoints();
+app.RegisterAuthEndPoints();
 
 app.Run();
 

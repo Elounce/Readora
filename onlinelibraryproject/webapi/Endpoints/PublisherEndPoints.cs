@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using webapi.Model;
+using webapi.Models;
 using webapi.ModelDto;
 
 namespace webapi.Endpoints
@@ -13,7 +13,7 @@ namespace webapi.Endpoints
 
             publishers.MapGet("", GetPublishers);
 
-            static async Task<Results<Ok<List<PublisherDto>>, BadRequest<string>>> GetPublishers(MkarpovCourseworkLibraryContext db)
+            static async Task<Results<Ok<List<PublisherDto>>, BadRequest<string>>> GetPublishers(LibraryContext db)
             {
                 return TypedResults.BadRequest("not impemented");
             }

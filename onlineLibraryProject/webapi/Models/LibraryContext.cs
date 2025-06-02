@@ -2,37 +2,40 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace webapi.Model;
+namespace webapi.Models;
 
-public partial class MkarpovCourseworkLibraryContext : DbContext
+public partial class LibraryContext : DbContext
 {
-    private readonly IConfiguration _configuration;
-
-    public MkarpovCourseworkLibraryContext()
+    public LibraryContext()
     {
     }
 
-    public MkarpovCourseworkLibraryContext(DbContextOptions<MkarpovCourseworkLibraryContext> options, IConfiguration configuration)
+    public LibraryContext(DbContextOptions<LibraryContext> options)
         : base(options)
     {
-        _configuration = configuration;
     }
 
     public virtual DbSet<Author> Authors { get; set; }
 
     public virtual DbSet<Book> Books { get; set; }
 
-    public virtual DbSet<BooksImport> BooksImports { get; set; }
+    public virtual DbSet<BookChangeHistory> BookChangeHistories { get; set; }
+
+    public virtual DbSet<BookFormat> BookFormats { get; set; }
 
     public virtual DbSet<BooksUser> BooksUsers { get; set; }
 
     public virtual DbSet<Category> Categories { get; set; }
+
+    public virtual DbSet<Format> Formats { get; set; }
 
     public virtual DbSet<Genre> Genres { get; set; }
 
     public virtual DbSet<Language> Languages { get; set; }
 
     public virtual DbSet<Publisher> Publishers { get; set; }
+
+    public virtual DbSet<Recommendation> Recommendations { get; set; }
 
     public virtual DbSet<Review> Reviews { get; set; }
 
@@ -41,12 +44,6 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
     public virtual DbSet<UserReadingStatus> UserReadingStatuses { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var connectionString = _configuration["ConnectionStrings:kolei"];
-        optionsBuilder.UseMySQL(connectionString);
-    } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,41 +67,51 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
 
             entity.ToTable("Book");
 
-            entity.HasIndex(e => e.AuthorId, "Book_Author_FK");
-
             entity.HasIndex(e => e.GenreId, "Book_Genre_FK");
+
+            entity.HasIndex(e => new { e.Title, e.Description }, "FT_Book_title_desc");
+
+            entity.HasIndex(e => e.Isbn, "UX_Book_isbn").IsUnique();
 
             entity.HasIndex(e => e.LanguageId, "book_language_FK");
 
             entity.HasIndex(e => e.PublisherId, "book_publisher_FK");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.AuthorId).HasColumnName("authorId");
+            entity.Property(e => e.AdultOnly)
+                .HasDefaultValueSql("'0'")
+                .HasColumnName("adultOnly");
+            entity.Property(e => e.CoverImageUrl)
+                .HasColumnType("text")
+                .HasColumnName("coverImageUrl");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("createdAt");
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
             entity.Property(e => e.GenreId).HasColumnName("genreId");
-            entity.Property(e => e.ImageUrl)
-                .HasMaxLength(255)
-                .HasColumnName("imageUrl");
-            entity.Property(e => e.Isbn).HasColumnName("isbn");
+            entity.Property(e => e.Isbn)
+                .HasMaxLength(13)
+                .HasColumnName("isbn");
             entity.Property(e => e.LanguageId).HasColumnName("languageId");
             entity.Property(e => e.Pages).HasColumnName("pages");
+            entity.Property(e => e.Price)
+                .HasPrecision(10)
+                .HasColumnName("price");
             entity.Property(e => e.PublisherId).HasColumnName("publisherId");
-            entity.Property(e => e.Title)
-                .HasMaxLength(100)
-                .HasColumnName("title");
-            entity.Property(e => e.TitleLong)
-                .HasMaxLength(255)
-                .HasColumnName("titleLong");
+            entity.Property(e => e.RatingAverage)
+                .HasPrecision(3)
+                .HasColumnName("ratingAverage");
+            entity.Property(e => e.Title).HasColumnName("title");
+            entity.Property(e => e.TotalReviews).HasColumnName("totalReviews");
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("updatedAt");
             entity.Property(e => e.YearPublished)
                 .HasColumnType("year")
                 .HasColumnName("yearPublished");
-
-            entity.HasOne(d => d.Author).WithMany(p => p.Books)
-                .HasForeignKey(d => d.AuthorId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("Book_Author_FK");
 
             entity.HasOne(d => d.Genre).WithMany(p => p.Books)
                 .HasForeignKey(d => d.GenreId)
@@ -119,6 +126,26 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
                 .HasForeignKey(d => d.PublisherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("book_publisher_FK");
+
+            entity.HasMany(d => d.Authors).WithMany(p => p.Books)
+                .UsingEntity<Dictionary<string, object>>(
+                    "BookAuthor",
+                    r => r.HasOne<Author>().WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("BA_author_fk"),
+                    l => l.HasOne<Book>().WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("BA_book_fk"),
+                    j =>
+                    {
+                        j.HasKey("BookId", "AuthorId").HasName("PRIMARY");
+                        j.ToTable("BookAuthor");
+                        j.HasIndex(new[] { "AuthorId" }, "BA_author_fk");
+                        j.IndexerProperty<int>("BookId").HasColumnName("bookId");
+                        j.IndexerProperty<int>("AuthorId").HasColumnName("authorId");
+                    });
 
             entity.HasMany(d => d.Categories).WithMany(p => p.Books)
                 .UsingEntity<Dictionary<string, object>>(
@@ -141,25 +168,64 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<BooksImport>(entity =>
+        modelBuilder.Entity<BookChangeHistory>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("books_import");
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
 
-            entity.Property(e => e.Author)
-                .HasMaxLength(50)
-                .HasColumnName("author");
-            entity.Property(e => e.Genre)
-                .HasMaxLength(50)
-                .HasColumnName("genre");
-            entity.Property(e => e.Height).HasColumnName("height");
-            entity.Property(e => e.Publisher)
-                .HasMaxLength(50)
-                .HasColumnName("publisher");
-            entity.Property(e => e.Title)
+            entity.ToTable("BookChangeHistory");
+
+            entity.HasIndex(e => e.BookId, "BookHistory_Book_FK");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.ActionType)
                 .HasMaxLength(100)
-                .HasColumnName("title");
+                .HasColumnName("actionType");
+            entity.Property(e => e.BookId).HasColumnName("bookId");
+            entity.Property(e => e.NewValue)
+                .HasColumnType("text")
+                .HasColumnName("newValue");
+            entity.Property(e => e.OldValue)
+                .HasColumnType("text")
+                .HasColumnName("oldValue");
+            entity.Property(e => e.Timestamp)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("timestamp");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.BookChangeHistories)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BookHistory_Book_FK");
+        });
+
+        modelBuilder.Entity<BookFormat>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("BookFormat");
+
+            entity.HasIndex(e => new { e.BookId, e.FormatId }, "bookId").IsUnique();
+
+            entity.HasIndex(e => e.FormatId, "formatId");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.BookId).HasColumnName("bookId");
+            entity.Property(e => e.Duration).HasColumnName("duration");
+            entity.Property(e => e.FileSize).HasColumnName("fileSize");
+            entity.Property(e => e.FileUrl)
+                .HasMaxLength(255)
+                .HasColumnName("fileUrl");
+            entity.Property(e => e.FormatId).HasColumnName("formatId");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.BookFormats)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BookFormat_ibfk_1");
+
+            entity.HasOne(d => d.Format).WithMany(p => p.BookFormats)
+                .HasForeignKey(d => d.FormatId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("BookFormat_ibfk_2");
         });
 
         modelBuilder.Entity<BooksUser>(entity =>
@@ -174,7 +240,15 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
 
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.BookId).HasColumnName("bookId");
-            entity.Property(e => e.LastReadPage).HasColumnName("lastReadPage");
+            entity.Property(e => e.FinishDate)
+                .HasColumnType("datetime")
+                .HasColumnName("finishDate");
+            entity.Property(e => e.Progress)
+                .HasPrecision(5)
+                .HasColumnName("progress");
+            entity.Property(e => e.StartDate)
+                .HasColumnType("datetime")
+                .HasColumnName("startDate");
             entity.Property(e => e.StatusId).HasColumnName("statusId");
 
             entity.HasOne(d => d.Book).WithMany(p => p.BooksUsers)
@@ -204,6 +278,20 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
+                .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<Format>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("Format");
+
+            entity.HasIndex(e => e.Name, "format_unique").IsUnique();
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(50)
                 .HasColumnName("name");
         });
 
@@ -254,11 +342,45 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
                 .HasColumnName("name");
         });
 
+        modelBuilder.Entity<Recommendation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PRIMARY");
+
+            entity.ToTable("Recommendation");
+
+            entity.HasIndex(e => e.BookId, "Rec_book_fk");
+
+            entity.HasIndex(e => e.UserId, "Rec_user_fk");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.BookId).HasColumnName("bookId");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                .HasColumnType("datetime")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.Reason)
+                .HasMaxLength(255)
+                .HasColumnName("reason");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.Recommendations)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Rec_book_fk");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Recommendations)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("Rec_user_fk");
+        });
+
         modelBuilder.Entity<Review>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PRIMARY");
 
             entity.ToTable("Review");
+
+            entity.HasIndex(e => e.Rating, "IX_Review_rating");
 
             entity.HasIndex(e => e.BookId, "Review_Book_FK");
 
@@ -276,6 +398,9 @@ public partial class MkarpovCourseworkLibraryContext : DbContext
             entity.Property(e => e.Rating)
                 .HasPrecision(2, 1)
                 .HasColumnName("rating");
+            entity.Property(e => e.UpdatedAt)
+                .HasMaxLength(100)
+                .HasColumnName("updatedAt");
             entity.Property(e => e.UserId).HasColumnName("userId");
 
             entity.HasOne(d => d.Book).WithMany(p => p.Reviews)

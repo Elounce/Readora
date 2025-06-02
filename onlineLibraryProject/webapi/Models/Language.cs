@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace webapi.Model;
+namespace webapi.Models;
 
 public partial class Language
 {

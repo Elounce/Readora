@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace webapi.Model;
+namespace webapi.Models;
 
 public partial class Review
 {
@@ -16,6 +16,8 @@ public partial class Review
     public string? Comment { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public string? UpdatedAt { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

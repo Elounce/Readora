@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http.HttpResults;
-using webapi.Model;
+using webapi.Models;
 using webapi.ModelDto;
 
 namespace webapi.Endpoints
@@ -15,7 +15,7 @@ namespace webapi.Endpoints
             genres.MapGet("", GetGenres);
 
 
-            static async Task<Results<Ok<List<Genre>>, BadRequest<string>>> GetGenres(MkarpovCourseworkLibraryContext db)
+            static async Task<Results<Ok<List<Genre>>, BadRequest<string>>> GetGenres(LibraryContext db)
             {
                 return TypedResults.BadRequest("not impemented");
             }

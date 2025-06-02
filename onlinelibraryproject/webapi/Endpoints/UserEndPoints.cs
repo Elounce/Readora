@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using webapi.Model;
+using webapi.Models;
 using webapi.ModelDto;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 namespace webapi.Endpoints;
 
@@ -12,18 +14,17 @@ public static class UserEndPoints
     public static void RegisterUserEndPoints(this WebApplication app)
     {
         var users = app.MapGroup("/users")
-            .WithTags("User");
+            .WithTags("User")
+            .RequireAuthorization(policy => policy.RequireRole("Admin"));
 
         users.MapGet("", GetUsers);
         users.MapGet("/user", GetUser);
-        users.MapGet("/{id}", GetUserById)
-            .RequireAuthorization();
+        users.MapGet("/{id}", GetUserById);
         users.MapPost("", CreateUser);
-        users.MapDelete("", DeleteUser)
-            .RequireAuthorization();
+        users.MapDelete("", DeleteUser);
         users.MapPut("/user", UpdateUser);
 
-        static async Task<Results<Ok<List<UserDtoDetailed>>, NotFound, BadRequest<string>>> GetUsers(MkarpovCourseworkLibraryContext db, [FromQuery] string page = "1", [FromQuery] string limit = "25")
+        static async Task<Results<Ok<List<UserDtoDetailed>>, NotFound, BadRequest<string>>> GetUsers(LibraryContext db, [FromQuery] string page = "1", [FromQuery] string limit = "25")
         {
             // Валидация параметров
             if (!int.TryParse(page, out int pageNumber) || !int.TryParse(limit, out int limitNumber))
@@ -56,7 +57,7 @@ public static class UserEndPoints
             return TypedResults.Ok(usersDto);
         }
 
-        static async Task<Results<Ok<UserDtoDetailed>, NotFound, BadRequest<string>>> GetUser(MkarpovCourseworkLibraryContext db, string email, string password)
+        static async Task<Results<Ok<UserDtoDetailed>, NotFound, BadRequest<string>>> GetUser(LibraryContext db, string email, string password)
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
                 return TypedResults.BadRequest("Variables login and password is null");
@@ -86,7 +87,7 @@ public static class UserEndPoints
             return TypedResults.Ok(user);
         }
 
-        static async Task<Results<Ok, NotFound<string>, UnauthorizedHttpResult>> GetUserById(MkarpovCourseworkLibraryContext db, HttpContext httpContext, int id)
+        static async Task<Results<Ok, NotFound<string>, UnauthorizedHttpResult>> GetUserById(LibraryContext db, HttpContext httpContext, int id)
         {
             if (!httpContext.User.Identity?.IsAuthenticated ?? false)
                 return TypedResults.Unauthorized();
@@ -99,11 +100,11 @@ public static class UserEndPoints
             return TypedResults.Ok();
         }
 
-        static async Task<Results<Created, BadRequest<string>>> CreateUser(MkarpovCourseworkLibraryContext db, UserDto userDto)
+        static async Task<Results<Created, BadRequest<string>>> CreateUser(LibraryContext db, UserDto userDto)
         {
             if (userDto is null)
                 return TypedResults.BadRequest("User is null");
-            if (string.IsNullOrWhiteSpace(userDto.HashPassword) || string.IsNullOrWhiteSpace(userDto.Email))
+            if (string.IsNullOrWhiteSpace(userDto.Password) || string.IsNullOrWhiteSpace(userDto.Email))
                 return TypedResults.BadRequest("HashPassword or Email is null");
             // Проверка на уникальность email
             if (await db.Users.AnyAsync(u => u.Email == userDto.Email))
@@ -114,7 +115,7 @@ public static class UserEndPoints
 
             User user = new User()
             {
-                HashPassword = userDto.HashPassword,
+                HashPassword = userDto.Password,
                 Nickname = userDto.Nickname,
                 Email = userDto.Email,
             };
@@ -125,14 +126,65 @@ public static class UserEndPoints
         }
 
         static async Task<Results<Ok, NotFound, BadRequest<string>>> DeleteUser(
-            MkarpovCourseworkLibraryContext db)
+            LibraryContext db)
         {
             return TypedResults.BadRequest("Превышен лимит");
         }
 
-        static async Task<Results<Ok, NotFound, BadRequest<string>>> UpdateUser(MkarpovCourseworkLibraryContext db)
+        static async Task<Results<Ok, NotFound, BadRequest<string>>> UpdateUser(
+            [FromServices] LibraryContext db,
+            [FromServices] IPasswordHasher<User> passwordHasher,
+            HttpContext http,
+            [FromBody] UserDto updatedData)
         {
-            return TypedResults.BadRequest("not implemented");
+            var userEmail = http.User?.Identity?.IsAuthenticated == true
+                ? http.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value
+                : null;
+
+            if (string.IsNullOrEmpty(userEmail))
+                return TypedResults.BadRequest("Пользователь не аутентифицирован.");
+
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
+            if (user == null)
+                return TypedResults.NotFound();
+
+            // Обновляем поля
+            if (!string.IsNullOrWhiteSpace(updatedData.Login))
+                user.Login = updatedData.Login;
+
+            if (!string.IsNullOrWhiteSpace(updatedData.FirstName))
+                user.FirstName = updatedData.FirstName;
+
+            if (!string.IsNullOrWhiteSpace(updatedData.LastName))
+                user.LastName = updatedData.LastName;
+
+            if (!string.IsNullOrWhiteSpace(updatedData.Nickname))
+                user.Nickname = updatedData.Nickname;
+
+            if (!string.IsNullOrWhiteSpace(updatedData.Email))
+                user.Email = updatedData.Email;
+
+            if (updatedData.BirthDate.HasValue)
+                user.BirthDate = updatedData.BirthDate;
+
+            if (updatedData.AdultContentRestriction.HasValue)
+                user.AdultContentRestriction = updatedData.AdultContentRestriction;
+
+            if (updatedData.PublicAccount.HasValue)
+                user.PublicAccount = updatedData.PublicAccount;
+
+            if (!string.IsNullOrWhiteSpace(updatedData.Password))
+                user.HashPassword = passwordHasher.HashPassword(user, updatedData.Password);
+
+            try
+            {
+                await db.SaveChangesAsync();
+                return TypedResults.Ok();
+            }
+            catch (Exception ex)
+            {
+                return TypedResults.BadRequest($"Ошибка при сохранении: {ex.Message}");
+            }
         }
     }
 }

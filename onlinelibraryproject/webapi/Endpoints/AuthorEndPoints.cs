@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using webapi.Model;
+using webapi.Models;
 
 namespace webapi.Endpoints
 {
@@ -14,10 +14,10 @@ namespace webapi.Endpoints
             authors.MapGet("", GetAuthors);
 
 
-            static async Task<Results<Ok<List<Author>>, BadRequest<string>>> GetAuthors(MkarpovCourseworkLibraryContext db)
+            static async Task<Results<Ok<List<Author>>, BadRequest<string>>> GetAuthors(LibraryContext db)
             {
                 var authorsList = await db.Authors.ToListAsync();
-                
+
                 if (authorsList != null && authorsList.Any())
                 {
                     return TypedResults.Ok(authorsList);

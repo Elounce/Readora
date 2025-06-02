@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using webapi.Model;
+using webapi.Models;
 using webapi.ModelDto;
 
 namespace webapi.Endpoints
@@ -14,7 +14,7 @@ namespace webapi.Endpoints
             categories.MapGet("", GetCategories);
 
 
-            static async Task<Results<Ok<List<CategoryDto>>, BadRequest<string>>> GetCategories(MkarpovCourseworkLibraryContext db)
+            static async Task<Results<Ok<List<CategoryDto>>, BadRequest<string>>> GetCategories(LibraryContext db)
             {
                 return TypedResults.BadRequest("not impemented");
             }

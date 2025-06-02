@@ -3,7 +3,7 @@
 
 
 ![Build](https://img.shields.io/github/actions/workflow/status/username/repository/main.yml)
-![License](https://img.shields.io/github/license/username/repository)
+![License](https://img.shields.io/github/license/elounce/readora)
 ![Platform](https://img.shields.io/badge/platform-ASP.NET_Core-blue)
 
 
